@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script>
+
+    function loadAll() {
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+
+        fetch("http://localhost:8080/loadAll/", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById("todoList").innerHTML = "";
+                result.forEach((e) => {
+                    newItem = document.createElement("div");
+                    newItem.innerText = ("<font color=blue>id:</font> "+ e.id +", name: "+ e.name);
+                    document.getElementById("todoList").appendChild(newItem);
+                })
+            })
+    }
+    //loadAll();
+
+    function loadById() {
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+
+        var id = document.getElementById("product-id").value;
+
+        fetch("http://localhost:8080/loadById/"+id, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById("todoList").innerHTML = "";
+                newItem = document.createElement("div");
+                newItem.innerText = result.name;
+                document.getElementById("todoList").appendChild(newItem);
+            })
+    }
+
+</script>
+<body>
+    <button id="load-all" onclick="loadAll()">Load All</button> or
+    <button id="load-by-id" onclick="loadById()">Load by ID</button>
+    <input id="product-id" type="text">
+    <br>
+    <div id="todoList"></div>
+
+</body>
+</html>
