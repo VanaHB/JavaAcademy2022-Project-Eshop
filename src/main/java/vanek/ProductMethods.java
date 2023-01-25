@@ -1,14 +1,17 @@
 package vanek;
 
+import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service    //dependency injections
 public class ProductMethods {
     private Connection connection;
 
-    //variable connection must be defined outside of the constructor otherwise it would be gone by the time the constructor closes
+    //variable connection must be defined outside the constructor otherwise it would be gone by the time the constructor closes
     //connection has to be connected in constructor as there might be an exception and a class can not throw exceptions
     public ProductMethods() throws SQLException{
         connection = DriverManager.getConnection(
@@ -36,7 +39,7 @@ public class ProductMethods {
         return extractFromResultSet(resultSet);
     }
 
-    public Product saveProduct(Product product) throws SQLException{
+    public Product saveNew(Product product) throws SQLException{
         Statement statement = connection.createStatement();
 
         //product.getIsForSale() is automaticylly converted from source true/false to database representation 1/0
@@ -58,10 +61,24 @@ public class ProductMethods {
         statement.executeUpdate(sqlString);
     }
 
+    public void updateIsForSalePriceByID(Product product) throws SQLException {
+        Statement statement = connection.createStatement();
+
+        String sqlString = "UPDATE products SET isForSale="+product.getIsForSale()+",price="+product.getPrice()+" WHERE id="+product.getId();
+        statement.executeUpdate(sqlString);
+    }
+
     public void deleteOutOfSale() throws SQLException{
         Statement statement = connection.createStatement();
 
         String sqlString = "DELETE FROM products WHERE isForSale=0";
+        statement.executeUpdate(sqlString);
+    }
+
+    public void deleteById(int id) throws SQLException {
+        Statement statement = connection.createStatement();
+
+        String sqlString = "DELETE FROM products WHERE id="+id;
         statement.executeUpdate(sqlString);
     }
 

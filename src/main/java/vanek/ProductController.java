@@ -8,55 +8,75 @@ import java.util.List;
 
 @RestController
 public class ProductController {
-    //Products operations:
-    //loadAll - return list of all products in database
-    //loadById - return information of a single product defined by id
-    //saveProduct - add a new product to the database (parameter is an object of the Product class)
-    //updatePriceById - update price of a product defined by id
-    //deleteOutOfSale - delete all out of sale products
-
-    //creating of a productMethods class instance so that the methods can be used as they are not static
+    //First option:
+    //Creating of a productMethods class instance so that the methods can be used as they are not static
     //there might be SQLException while the instance of the class is being initialized
-
     /* this would work ok
     private ProductMethods productMethods = new ProductMethods();
 
     public ProductController() throws SQLException{
     }
-     */
-    private ProductMethods productMethods;
-
+    */
+    /* other option
     public ProductController() {
         try {
             productMethods = new ProductMethods();
         } catch (SQLException e) {
             //what to do with it
         }
-    }
+    }*/
 
+    //Second option:
+    //Dependency Injection
+    private final ProductMethods productMethods; //service class
 
-    @GetMapping("/loadAll")
+    public ProductController(ProductMethods productMethods) {
+        this.productMethods = productMethods;
+    } //dependency injections
+
+    @GetMapping("/products")
     public List<Product> loadAll() throws SQLException{
         return productMethods.loadAll();    //return value is automatically converted to json
     }
 
-    @GetMapping("/loadById/{id}")
+    @GetMapping("/products/{id}")
     public Product loadById(@PathVariable(value = "id") int id) throws SQLException{
         return productMethods.loadById(id);
     }
 
-    @PostMapping("/saveProduct")
-    public Product saveProduct(@RequestBody Product product) throws SQLException{
-        return productMethods.saveProduct(product);
+    @PostMapping("/products")
+    public Product saveNew(@RequestBody Product product) throws SQLException{
+        return productMethods.saveNew(product);
     }
 
+    @PatchMapping("/products/{id}")
+    public void patchById(@PathVariable(value = "id") int id) throws SQLException {
+        //tady dopsat metodu
+    }
+
+
+    @DeleteMapping("/products/{id}")
+    public void deleteById(@PathVariable(value = "id") int id) throws SQLException {
+        productMethods.deleteById(id);
+    }
+
+    //these mappings do not really meet Rest API conventions, PatchMapping is supposed to be used
+    //mapping is case-sensitive, "-" can be used, conventions are up to the team to decide
     @PutMapping("/updatePriceByID/{id}")
     public void updatePriceByID(@PathVariable(value = "id") int id, @RequestParam(value = "price", required = true) BigDecimal price) throws SQLException {
         productMethods.updatePriceByID(id, price);
+    }
+
+    @PutMapping("/updateIsForSalePriceByID")
+    public void updateIsForSalePriceByID(@RequestBody Product product) throws SQLException {
+        //tady by se mohlo kontrolovat zda jsou produkty v range
+        //ošetřit pomocí error handleru
+        productMethods.updateIsForSalePriceByID(product);
     }
 
     @DeleteMapping("/deleteOutOfSale")
     public void deleteOutOfSale() throws SQLException {
         productMethods.deleteOutOfSale();
     }
+
 }

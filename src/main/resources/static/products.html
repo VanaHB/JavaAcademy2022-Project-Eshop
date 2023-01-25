@@ -2,28 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Products page</title>
 </head>
 <script>
-
     function loadAll() {
         var requestOptions = {
             method: 'GET',
             redirect: 'follow'
         };
 
-        fetch("http://localhost:8080/loadAll/", requestOptions)
+        document.getElementById("productTableBody").innerHTML = "";
+        document.getElementById("product-id").value = "";
+
+        fetch("http://localhost:8080/products", requestOptions)
             .then(response => response.json())
             .then(result => {
-                document.getElementById("todoList").innerHTML = "";
-                result.forEach((e) => {
-                    newItem = document.createElement("div");
-                    newItem.innerText = ("<font color=blue>id:</font> "+ e.id +", name: "+ e.name);
-                    document.getElementById("todoList").appendChild(newItem);
+                console.log(result);
+                //console.log("result.done: " + result.done);
+                result.forEach((item) => {
+                    writeToTable(item);
                 })
             })
+            .catch(error => console.log('error', error));
     }
-    //loadAll();
 
     function loadById() {
         var requestOptions = {
@@ -31,25 +32,175 @@
             redirect: 'follow'
         };
 
-        var id = document.getElementById("product-id").value;
+        document.getElementById("productTableBody").innerHTML = "";
 
-        fetch("http://localhost:8080/loadById/"+id, requestOptions)
+        //fetch is asynchronous, returns Promise object
+        //there are three states - Pending from which to Fulfilled, Rejected
+        fetchPromise = fetch("http://localhost:8080/products/"+document.getElementById("product-id").value, requestOptions)
             .then(response => response.json())
             .then(result => {
-                document.getElementById("todoList").innerHTML = "";
-                newItem = document.createElement("div");
-                newItem.innerText = result.name;
-                document.getElementById("todoList").appendChild(newItem);
+                console.log(result);
+                writeToTable(result);
+            })
+            .catch(error => console.log('error', error));
+    }
+
+
+
+    function updateItem(idToUpdate) {
+        var idTmp = idToUpdate;
+        var saleTmp = document.getElementById("isForSale"+idToUpdate).checked;
+        var priceTmp = document.getElementById("price"+idToUpdate).value;
+
+        var requestOptions = {
+            method: 'PUT',
+            headers: {'Accept': 'application/json','Content-Type': 'application/json'},
+            body: JSON.stringify({id: idTmp, isForSale: saleTmp,  price: priceTmp})
+        };
+
+        fetch("http://localhost:8080/updateIsForSalePriceByID", requestOptions)
+            .then(response => response.text())
+            .then((response) => {
+                        console.log(response);
+                        loadAll();
             })
     }
 
+    function deleteItem(idToDelete) {
+        var requestOptions = {
+            method: 'DELETE',
+            redirect: 'follow'
+        };
+
+        fetch("http://localhost:8080/products/"+idToDelete , requestOptions)
+            .then(response => response.text())
+            .then((response) => {
+                        console.log(response);
+                        loadAll();
+            })
+    }
+
+    function writeToTable(item) {
+        var row = document.createElement("tr");
+        var cellId = document.createElement("td");
+        var cellPartNo = document.createElement("td");
+        var cellName = document.createElement("td");
+        var cellDescription = document.createElement("td");
+        var cellIsForSale = document.createElement("td");
+        var cellPrice = document.createElement("td");
+        var cellButtons = document.createElement("td");
+
+        var checkIsForSale = document.createElement("input");
+        var textPrice = document.createElement("input");
+        var buttonUpdate = document.createElement("input");
+        var buttonDelete = document.createElement("input");
+
+        cellId.innerText = item.id;
+        row.appendChild(cellId);
+
+        cellPartNo.innerText = item.partNo;
+        row.appendChild(cellPartNo);
+
+        cellName .innerText = item.name;
+        row.appendChild(cellName);
+
+        cellDescription.innerText = item.description;
+        row.appendChild(cellDescription);
+
+        checkIsForSale.type = "checkbox";
+        checkIsForSale.id = ("isForSale"+item.id);
+        checkIsForSale.checked = item.isForSale;
+        cellIsForSale.appendChild(checkIsForSale);
+        row.appendChild(cellIsForSale);
+
+        textPrice.type = "text";
+        textPrice.id = ("price"+item.id);
+        textPrice.value = item.price;
+        cellPrice.appendChild(textPrice);
+        row.appendChild(cellPrice);
+
+        buttonUpdate.type = "button";
+        buttonUpdate.id = ("update"+item.id);
+        buttonUpdate.value = "Update";
+        buttonUpdate.setAttribute('onclick', 'javascript : updateItem(' + item.id + ');');
+        cellButtons.appendChild(buttonUpdate);
+        buttonDelete.type = "button";
+        buttonDelete.id = ("delete"+item.id);
+        buttonDelete.value = "Delete";
+        buttonDelete.setAttribute('onclick', 'javascript : deleteItem(' + item.id + ');');
+        cellButtons.appendChild(buttonDelete);
+        row.appendChild(cellButtons);
+
+        document.getElementById("productTableBody").appendChild(row);
+    }
+
+    function saveNew() {
+        var requestOptions = {
+            method: 'POST',
+            headers: {'Accept': 'application/json','Content-Type': 'application/json'},
+            body: JSON.stringify({partNo: document.getElementById("newPartNo").value, name : document.getElementById("newName").value, description : document.getElementById("newDescription").value, isForSale: document.getElementById("newIsForSale").checked, price: document.getElementById("newPrice").value}),
+            redirect: 'follow'
+        };
+
+        fetch("http://localhost:8080/products" , requestOptions)
+            .then(response => response.text())
+            .then(result => {console.log(result)})
+            .catch(error => console.log('error', error)); // tady by mohla být i chyba zobrazená do kódu
+    }
 </script>
 <body>
-    <button id="load-all" onclick="loadAll()">Load All</button> or
-    <button id="load-by-id" onclick="loadById()">Load by ID</button>
-    <input id="product-id" type="text">
-    <br>
-    <div id="todoList"></div>
+    <div align="center">
+        <div id="productListDiv">
+            <button id="load-all" onclick="loadAll()">Load all</button> or
+            <button id="load-by-id" onclick="loadById()">Load one by ID</button>
+            <input id="product-id" type="text">
+            <br>
+            <br>
+            <table id="productTable" border="1" width="800">
+                <thead id="productTableHead">
+                    <tr>
+                        <th>ID</th>
+                        <th>PN</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>For Sale</th>
+                        <th>Price</th>
+                        <th> </th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <br>
+        <div id="productAddDiv">
+            <table id="productTableAdd" border="1" width="800">
+                <thead id="productTableAddHead">
+                <tr>
+                    <th>ID</th>
+                    <th>PN</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>For Sale</th>
+                    <th>Price</th>
+                    <th> </th>
+                </tr>
+                </thead>
+                <tbody id="productTableAddBody">
+                <tr>
+                    <td></td>
+                    <td><input id="newPartNo" type="text"></td>
+                    <td><input id="newName" type="text"></td>
+                    <td><input id="newDescription" type="text"></td>
+                    <td><input id="newIsForSale" type="checkbox"></td>
+                    <td><input id="newPrice" type="text"></td>
+                    <td><input id="newProductAdd" type="button" value="Add New Item" onclick="saveNew()"></td>
+                </tr>
+                </tbody>
+            </table>
 
+        </div>
+    </div>
 </body>
 </html>
