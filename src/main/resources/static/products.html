@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Products page</title>
+    <title>Products</title>
 </head>
 <script>
+    var allIsLoad = 0;
+
     function loadAll() {
         var requestOptions = {
             method: 'GET',
-            redirect: 'follow'
+            redirect: 'follow' //default
         };
 
         document.getElementById("productTableBody").innerHTML = "";
@@ -18,12 +20,11 @@
             .then(response => response.json())
             .then(result => {
                 console.log(result);
-                //console.log("result.done: " + result.done);
                 result.forEach((item) => {
                     writeToTable(item);
                 })
+                allIsLoad = 1;
             })
-            .catch(error => console.log('error', error));
     }
 
     function loadById() {
@@ -36,16 +37,14 @@
 
         //fetch is asynchronous, returns Promise object
         //there are three states - Pending from which to Fulfilled, Rejected
-        fetchPromise = fetch("http://localhost:8080/products/"+document.getElementById("product-id").value, requestOptions)
+        fetch("http://localhost:8080/products/"+document.getElementById("product-id").value, requestOptions)
             .then(response => response.json())
             .then(result => {
                 console.log(result);
                 writeToTable(result);
+                allIsLoad = 0;
             })
-            .catch(error => console.log('error', error));
     }
-
-
 
     function updateItem(idToUpdate) {
         var idTmp = idToUpdate;
@@ -60,9 +59,9 @@
 
         fetch("http://localhost:8080/updateIsForSalePriceByID", requestOptions)
             .then(response => response.text())
-            .then((response) => {
-                        console.log(response);
-                        loadAll();
+            .then((result) => {
+                //console.log(result);  //there is no reponse because controlers method returns void
+                if (allIsLoad == 1) loadAll();
             })
     }
 
@@ -74,10 +73,32 @@
 
         fetch("http://localhost:8080/products/"+idToDelete , requestOptions)
             .then(response => response.text())
-            .then((response) => {
-                        console.log(response);
-                        loadAll();
+            .then((result) => {
+                //console.log(result);  //there is no reponse because controlers method is void
+                if (allIsLoad == 1) loadAll();
             })
+    }
+
+    function saveNew() {
+        var requestOptions = {
+            method: 'POST',
+            headers: {'Accept': 'application/json','Content-Type': 'application/json'},
+            body: JSON.stringify({partNo: document.getElementById("newPartNo").value, name : document.getElementById("newName").value, description : document.getElementById("newDescription").value, isForSale: document.getElementById("newIsForSale").checked, price: document.getElementById("newPrice").value}),
+            redirect: 'follow'
+        };
+
+        fetch("http://localhost:8080/products" , requestOptions)
+            .then(response => response.text())
+            .then((result) => {
+                console.log(result);
+                if (allIsLoad == 1) loadAll();
+                document.getElementById("newPartNo").value = "";
+                document.getElementById("newName").value = "";
+                document.getElementById("newDescription").value = "";
+                document.getElementById("newIsForSale").checked = false;
+                document.getElementById("newPrice").value = "";
+            })
+            //.catch(error => console.log('error', error)); // tady by mohla být i chyba zobrazená do kódu, zatím to nefunguje
     }
 
     function writeToTable(item) {
@@ -133,20 +154,6 @@
 
         document.getElementById("productTableBody").appendChild(row);
     }
-
-    function saveNew() {
-        var requestOptions = {
-            method: 'POST',
-            headers: {'Accept': 'application/json','Content-Type': 'application/json'},
-            body: JSON.stringify({partNo: document.getElementById("newPartNo").value, name : document.getElementById("newName").value, description : document.getElementById("newDescription").value, isForSale: document.getElementById("newIsForSale").checked, price: document.getElementById("newPrice").value}),
-            redirect: 'follow'
-        };
-
-        fetch("http://localhost:8080/products" , requestOptions)
-            .then(response => response.text())
-            .then(result => {console.log(result)})
-            .catch(error => console.log('error', error)); // tady by mohla být i chyba zobrazená do kódu
-    }
 </script>
 <body>
     <div align="center">
@@ -199,7 +206,6 @@
                 </tr>
                 </tbody>
             </table>
-
         </div>
     </div>
 </body>

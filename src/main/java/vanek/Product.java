@@ -4,13 +4,13 @@ import java.math.BigDecimal;
 
 public class Product {
     private int id;
-    private int partNo;
+    private String partNo;
     private String name;
     private String description;
     private Boolean isForSale;
     private BigDecimal price;
 
-    public Product(int id, int partNo, String name, String description, Boolean isForSale, BigDecimal price) {
+    public Product(int id, String partNo, String name, String description, Boolean isForSale, BigDecimal price) {
         this.id = id;
         this.partNo = partNo;
         this.name = name;
@@ -23,7 +23,7 @@ public class Product {
         return id;
     }
 
-    public int getPartNo() {
+    public String getPartNo() {
         return partNo;
     }
 
