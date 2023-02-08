@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -37,22 +36,16 @@ public class ProductController {
         this.productMethods = productMethods;
     }
 
-    //ExceptionHandler catches Exceptions and allows us to adjust them in order to get custom messages as response
+    //ExceptionHandler catches Exceptions and allows us to adjust them in order to get custom response
     //example of SQLException without and with ExceptionHadler
     //{"timestamp":"2023-02-03T13:05:25.895+00:00","status":500,"error":"Internal Server Error","path":"/products"}
     //{"message":"Illegal operation on empty result set.","timeStamp":"2023-02-03T14:16:51.9623217"}
-    @ExceptionHandler //no futher specification - catches all exceptions
+    @ExceptionHandler //no futher specification - catches all exceptions - can be Exception specific @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) //sets response code to 500 (generic error), default is 200 - ok
+    //method can have any name and return value as long as the result can be processed to json (it is done automaticaly)
     public ErrorResponse handleError(Exception e){ //all errors are collected as Exception e
         return new ErrorResponse(e.getMessage(), LocalDateTime.now());
     }
-
-    /* Exceptionhandler can be Exception specific
-    @ExceptionHandler(NotFoundException.class)
-    public void handleNotFoundException() {
-        //
-    }
-     */
 
     @GetMapping("/products")
     public List<Product> loadAll() throws SQLException{
