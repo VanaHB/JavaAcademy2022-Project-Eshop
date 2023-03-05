@@ -30,10 +30,10 @@ public class ProductController {
 
     //Second option:
     //Dependency Injection
-    private final ProductMethods productMethods; //service class
+    private final ProductService productService; //service class
 
-    public ProductController(ProductMethods productMethods) {
-        this.productMethods = productMethods;
+    public ProductController(ProductService productService) {
+        this.productService = productService;
     }
 
     //ExceptionHandler catches Exceptions and allows us to adjust them in order to get custom response
@@ -43,55 +43,45 @@ public class ProductController {
     @ExceptionHandler //no futher specification - catches all exceptions - can be Exception specific @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) //sets response code to 500 (generic error), default is 200 - ok
     //method can have any name and return value as long as the result can be processed to json (it is done automaticaly)
-    public ErrorResponse handleError(Exception e){ //all errors are collected as Exception e
+    public ErrorResponse handleError(ProductException e){ //all errors are collected as Exception e
         return new ErrorResponse(e.getMessage(), LocalDateTime.now());
     }
 
     @GetMapping("/products")
     public List<Product> loadAll() throws SQLException{
-        return productMethods.loadAll();    //return value is automatically converted to json
+        return productService.loadAll();    //return value is automatically converted to json
     }
 
     @GetMapping("/products/{id}")
     public Product loadById(@PathVariable(value = "id") int id) throws SQLException{
-        return productMethods.loadById(id);
+        return productService.loadById(id);
     }
 
     @PostMapping("/products")
     public Product saveNew(@RequestBody Product product) throws SQLException, ProductException{
-        productMethods.checkProduct(product);
-        return productMethods.saveNew(product);
-    }
-
-    @PatchMapping("/products/{id}")
-    public void patchById(@PathVariable(value = "id") int id) throws SQLException {
-        //will be added in future
+        return productService.saveNew(product);
     }
 
     @DeleteMapping("/products/{id}")
-    public void deleteById(@PathVariable(value = "id") int id) throws SQLException {
-        productMethods.deleteById(id);
+    public void deleteById(@PathVariable(value = "id") int id) throws SQLException, ProductException {
+        productService.deleteById(id);
     }
 
     //these mappings do not really meet Rest API conventions, PatchMapping is supposed to be used
     //mapping is case-sensitive, "-" can be used, conventions are up to the team to decide
-    @PutMapping("/updatePriceByID/{id}") //this is not used by frond-end
-    public void updatePriceByID(@PathVariable(value = "id") int id, @RequestParam(value = "price", required = true) BigDecimal price) throws SQLException {
-        productMethods.updatePriceByID(id, price);
+    @PatchMapping("/products/price-by-id/{id}") //this is not used by frond-end
+    public void patchPriceByID(@PathVariable(value = "id") int id, @RequestParam(value = "price", required = true) BigDecimal price) throws SQLException, ProductException {
+        productService.patchPriceByID(id, price);
     }
 
-    @PutMapping("/updateIsForSalePriceByID")
-    public void updateIsForSalePriceByID(@RequestBody Product product) throws Exception , SQLException {
-        if (productMethods.checkPrice(product.getPrice())) {
-            productMethods.updateIsForSalePriceByID(product);
-        } else {
-            throw new Exception("Price is out of range.");
-        }
+    @PatchMapping("/products/is-for-sale-price-by-id")
+    public void patchIsForSalePriceByID(@RequestBody Product product) throws SQLException, ProductException {
+        productService.patchIsForSalePriceByID(product);
     }
 
-    @DeleteMapping("/deleteOutOfSale") //this is not used by frond-end
+    @DeleteMapping("/products/out-of-sale") //this is not used by frond-end
     public void deleteOutOfSale() throws SQLException {
-        productMethods.deleteOutOfSale();
+        productService.deleteOutOfSale();
     }
 
 }

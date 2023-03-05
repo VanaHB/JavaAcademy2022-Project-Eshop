@@ -7,7 +7,7 @@ public class Product {
     private String partNo;
     private String name;
     private String description;
-    private Boolean isForSale;
+    private boolean isForSale;
     private BigDecimal price;
 
     public Product(int id, String partNo, String name, String description, Boolean isForSale, BigDecimal price) {

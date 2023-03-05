@@ -52,12 +52,12 @@
         var priceTmp = document.getElementById("price"+idToUpdate).value;
 
         var requestOptions = {
-            method: 'PUT',
+            method: 'PATCH',
             headers: {'Accept': 'application/json','Content-Type': 'application/json'},
             body: JSON.stringify({id: idTmp, isForSale: saleTmp,  price: priceTmp})
         };
 
-        fetch("http://localhost:8080/updateIsForSalePriceByID", requestOptions)
+        fetch("http://localhost:8080/products/is-for-sale-price-by-id", requestOptions)
             .then(response => response.text())
             .then((result) => {
                 //console.log(result);  //there is no reponse because controlers method returns void
