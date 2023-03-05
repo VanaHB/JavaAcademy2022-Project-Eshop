@@ -1,1 +1,1 @@
-# JavaAcademy2022-Project-eshop
+Tady bude popis.
